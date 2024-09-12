@@ -28,8 +28,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -40,7 +40,7 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.lifecyclelivedata.ktx)
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.8.5")
     implementation(libs.androidx.room.runtime)
     //noinspection KaptUsageInsteadOfKsp
     kapt(libs.androidx.room.compiler)

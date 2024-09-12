@@ -4,15 +4,23 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import com.example.a5pr_shestopalova.R
+import com.example.a5pr_shestopalova.data.database.RecipeDao
 import com.example.a5pr_shestopalova.data.model.Recipe
 import com.squareup.picasso.Picasso
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class RecipeAdapter(private val recipes: MutableLiveData<List<Recipe>>) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
+class RecipeAdapter(
+    private val recipes: MutableLiveData<List<Recipe>>,
+    private val recipeDao: RecipeDao
+) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
 
     class RecipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.name)
@@ -20,6 +28,7 @@ class RecipeAdapter(private val recipes: MutableLiveData<List<Recipe>>) : Recycl
         val instructions: TextView = itemView.findViewById(R.id.instructions)
         val calories: TextView = itemView.findViewById(R.id.calories)
         val image: ImageView = itemView.findViewById(R.id.image)
+        val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
@@ -35,8 +44,15 @@ class RecipeAdapter(private val recipes: MutableLiveData<List<Recipe>>) : Recycl
             holder.name.text = recipe.name
             holder.ingredients.text = recipe.ingredients.toString()
             holder.instructions.text = recipe.instructions.toString()
-            holder.calories.text = recipe.caloriesPerServing.toString()
+            holder.calories.text = "Calories: " + recipe.caloriesPerServing.toString()
             Picasso.get().load(recipe.image).into(holder.image)
+
+            holder.btnDelete.setOnClickListener {
+                // Удалите элемент из базы данных и обновите адаптер
+                CoroutineScope(Dispatchers.IO).launch {
+                    recipeDao.delete(recipe)
+                }
+            }
         }
     }
 

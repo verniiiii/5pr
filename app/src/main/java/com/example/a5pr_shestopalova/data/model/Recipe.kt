@@ -7,8 +7,8 @@ import androidx.room.PrimaryKey
 data class Recipe(
     @PrimaryKey val id: Int = 0,
     val name: String,
-    val ingredients: List<String>,
-    val instructions: List<String>,
+    val ingredients: String,
+    val instructions: String,
     val caloriesPerServing: Int,
     val image: String
 )

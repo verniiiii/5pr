@@ -1,13 +1,17 @@
 package com.example.a5pr_shestopalova.ui.activities
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.a5pr_shestopalova.R
 import com.example.a5pr_shestopalova.data.api.RecipeApi
+import com.example.a5pr_shestopalova.data.api.RetrofitClient
 import com.example.a5pr_shestopalova.data.database.RecipeDatabase
 import com.example.a5pr_shestopalova.data.database.RecipeRepository
 import com.example.a5pr_shestopalova.data.model.Recipe
@@ -16,10 +20,6 @@ import com.example.a5pr_shestopalova.ui.adapters.RecipeAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-
-private const val BASE_URL = "https://dummyjson.com"
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -33,12 +33,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
-        val recipeApi = retrofit.create(RecipeApi::class.java)
+        val recipeApi = RetrofitClient.instance
 
         // Инициализация бд и репозитория
         val recipeDao = RecipeDatabase.getDatabase(applicationContext).recipeDao()
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         // Инициализация адаптера и RecyclerView
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = RecipeAdapter(recipesLiveData)
+        adapter = RecipeAdapter(recipesLiveData, recipeDao)
         binding.recyclerView.adapter = adapter
 
         // Наблюдение за изменениями списка рецептов
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             if (id != null && id in 1..50) {
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
+                        // Выполните запрос
                         val recipe = recipeApi.getRecipeById(id)
                         // Сохраните рецепт в базу данных
                         repository.insert(recipe)
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread {
                             Toast.makeText(this@MainActivity, "Error fetching recipe", Toast.LENGTH_SHORT).show()
                         }
+                        Log.d("MyLog", e.stackTraceToString())
                     }
                 }
             } else {
@@ -78,4 +81,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
